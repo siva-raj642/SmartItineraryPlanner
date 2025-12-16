@@ -1,4 +1,4 @@
-# SmartItineraryPlanner
+# Smart Itinerary Planner
 
 Capstone project for Matrimorphosis
 
