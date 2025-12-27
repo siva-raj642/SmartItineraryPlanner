@@ -1,6 +1,22 @@
 import {db} from '../config/db'; 
 
 
+// Types 
+
+export interface Itinerary {
+  id?: number;
+  user_id: number;
+  destination: string;
+  start_date: string;
+  end_date: string;
+  budget: number;
+  preferences?: string;
+  activities?: any;      
+  notes?: string;
+  media_paths?: string;  
+}
+
+
 // Create itinerary
 
 export const createItinerary = async (data: any) => {
@@ -74,17 +90,4 @@ export const deleteItinerary = async (id: number) => {
 };
 
 
-// Types 
 
-export interface Itinerary {
-  id?: number;
-  user_id: number;
-  destination: string;
-  start_date: string;
-  end_date: string;
-  budget: number;
-  preferences?: string;
-  activities?: any;      
-  notes?: string;
-  media_paths?: string;  
-}

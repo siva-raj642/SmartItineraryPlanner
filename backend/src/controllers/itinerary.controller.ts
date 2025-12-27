@@ -5,26 +5,6 @@ import { getItineraryOptions } from "../services/itineraryGenerator.service";
 import {db} from '../config/db'; 
 
 
-// auto generate itinerary
-export const getItineraryOptionsController = (
-  req: Request,
-  res: Response
-) => {
-  const { destination, budget } = req.query;
-
-  if (!destination || !budget) {
-    return res.status(400).json({ message: "Destination and budget required" });
-  }
-
-  const result = getItineraryOptions(
-    destination as string,
-    Number(budget)
-  );
-
-  res.json(result);
-};
-
-
 // create itinerary
 export const create = async (req: AuthRequest, res: Response) => {
   try {
@@ -42,7 +22,7 @@ export const create = async (req: AuthRequest, res: Response) => {
 
     res.status(201).json({ message: 'Itinerary created' });
   } catch (err) {
-    console.error(err); // helpful for debugging
+    console.error(err); 
     res.status(500).json({ message: 'Creation failed' });
   }
 };
@@ -117,6 +97,26 @@ export const remove = async (req: AuthRequest, res: Response) => {
 
   await Itinerary.deleteItinerary(+req.params.id);
   res.json({ message: 'Deleted' });
+};
+ 
+
+// auto generate itinerary
+export const getItineraryOptionsController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const { destination, budget } = req.query;
+
+  if (!destination || !budget) {
+    return res.status(400).json({ message: "Destination and budget required" });
+  }
+
+  const result = await getItineraryOptions(
+    destination as string,
+    Number(budget)
+  );
+
+  res.json(result);
 };
 
 
