@@ -2,22 +2,24 @@
   "Ooty": [
     {
       "id": "OOTY_LOW_2D",
+      "destination": "Ooty",
       "budgetTier": "LOW",
       "days": 2,
       "estimatedCost": 7000,
+      "title": "Budget 2 Days Ooty Trip",
       "itinerary": [
         {
           "day": 1,
           "activities": [
             {
               "name": "Ooty Lake",
-              "duration": 90,
-              "travelTime": "20–30 mins"
+              "durationMinutes": 90,
+              "travelTimeMinutes": 25
             },
             {
               "name": "Botanical Garden",
-              "duration": 120,
-              "travelTime": "15–25 mins"
+              "durationMinutes": 120,
+              "travelTimeMinutes": 20
             }
           ]
         },
@@ -26,8 +28,8 @@
           "activities": [
             {
               "name": "Doddabetta Peak",
-              "duration": 90,
-              "travelTime": "30–40 mins"
+              "durationMinutes": 90,
+              "travelTimeMinutes": 35
             }
           ]
         }
