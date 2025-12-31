@@ -1,0 +1,127 @@
+<div class="creation-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Create New Travel Itinerary</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="itineraryForm" (ngSubmit)="onSubmit()">
+        <!-- Basic Information -->
+        <h3>Basic Information</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Destination</mat-label>
+          <input matInput formControlName="destination" placeholder="e.g., Paris, France">
+          <mat-error *ngIf="itineraryForm.get('destination')?.hasError('required')">
+            Destination is required
+          </mat-error>
+        </mat-form-field>
+
+        <div class="date-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="start_date" [min]="minDate">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+            <mat-error *ngIf="itineraryForm.get('start_date')?.hasError('required')">
+              Start date is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="end_date" [min]="minDate">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+            <mat-error *ngIf="itineraryForm.get('end_date')?.hasError('required')">
+              End date is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Budget ($)</mat-label>
+          <input matInput type="number" formControlName="budget" placeholder="Enter your budget">
+          <mat-error *ngIf="itineraryForm.get('budget')?.hasError('required')">
+            Budget is required
+          </mat-error>
+          <mat-error *ngIf="itineraryForm.get('budget')?.hasError('min')">
+            Budget must be greater than 0
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Preferences (Optional)</mat-label>
+          <input matInput formControlName="preferences" placeholder="e.g., sightseeing, adventure, relaxation">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes (Optional)</mat-label>
+          <textarea matInput formControlName="notes" rows="3" placeholder="Any additional notes"></textarea>
+        </mat-form-field>
+
+        <!-- Activities Section -->
+        <div class="activities-section">
+          <div class="section-header">
+            <h3>Activities (Optional - Leave blank for auto-generated)</h3>
+            <button mat-raised-button type="button" color="accent" (click)="addActivity()">
+              <mat-icon>add</mat-icon>
+              Add Activity
+            </button>
+          </div>
+
+          <div formArrayName="activities">
+            <mat-card *ngFor="let activity of activities.controls; let i = index" [formGroupName]="i" class="activity-card">
+              <div class="activity-header">
+                <h4>Activity {{ i + 1 }}</h4>
+                <button mat-icon-button type="button" color="warn" (click)="removeActivity(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              <div class="activity-fields">
+                <mat-form-field appearance="outline">
+                  <mat-label>Activity Name</mat-label>
+                  <input matInput formControlName="name" placeholder="e.g., Visit Eiffel Tower">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Time</mat-label>
+                  <input matInput formControlName="time" placeholder="e.g., 9:00 AM">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Duration</mat-label>
+                  <input matInput formControlName="duration" placeholder="e.g., 2 hours">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Estimated Cost ($)</mat-label>
+                  <input matInput type="number" formControlName="estimatedCost" placeholder="0">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Location</mat-label>
+                  <input matInput formControlName="location" placeholder="Specific location">
+                </mat-form-field>
+              </div>
+            </mat-card>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          <mat-error>{{ errorMessage }}</mat-error>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="loading || itineraryForm.invalid">
+            <span *ngIf="!loading">Create Itinerary</span>
+            <span *ngIf="loading">Creating...</span>
+          </button>
+          <button mat-button type="button" (click)="cancel()">Cancel</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

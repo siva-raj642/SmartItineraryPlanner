@@ -1,0 +1,68 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="navigateTo('/')">
+    <mat-icon>flight_takeoff</mat-icon>
+  </button>
+  <span class="app-title">Travel Planner</span>
+  
+  <span class="spacer"></span>
+  
+  <div *ngIf="isLoggedIn" class="nav-actions">
+    <button mat-button routerLink="/itineraries" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <mat-icon>list</mat-icon>
+      My Itineraries
+    </button>
+    
+    <button mat-button routerLink="/itineraries/new" routerLinkActive="active">
+      <mat-icon>add_circle</mat-icon>
+      Create New
+    </button>
+    
+    <button mat-button *ngIf="isAdmin" routerLink="/dashboard" routerLinkActive="active">
+      <mat-icon>dashboard</mat-icon>
+      Dashboard
+    </button>
+
+    <!-- Messages/Notifications Icon -->
+    <button mat-icon-button routerLink="/messages" matTooltip="Messages & Notifications" class="notification-btn">
+      <mat-icon [matBadge]="notificationCount > 0 ? notificationCount : null" matBadgeColor="warn" matBadgeSize="small" aria-hidden="false">
+        mail
+      </mat-icon>
+    </button>
+
+    <!-- Admin Communication Center -->
+    <button mat-icon-button *ngIf="isAdmin" routerLink="/admin/messages" matTooltip="Admin Messages" class="admin-msg-btn">
+      <mat-icon>admin_panel_settings</mat-icon>
+    </button>
+
+    <!-- Pending Invites Bell -->
+    <app-pending-invites></app-pending-invites>
+    
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+      {{ currentUser?.name }}
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <div class="user-info">
+        <p><strong>{{ currentUser?.name }}</strong></p>
+        <p>{{ currentUser?.email }}</p>
+        <p class="role-badge">{{ currentUser?.role }}</p>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>exit_to_app</mat-icon>
+        Logout
+      </button>
+    </mat-menu>
+  </div>
+  
+  <div *ngIf="!isLoggedIn">
+    <button mat-button routerLink="/login">
+      <mat-icon>login</mat-icon>
+      Login
+    </button>
+    <button mat-raised-button color="accent" routerLink="/register">
+      <mat-icon>person_add</mat-icon>
+      Register
+    </button>
+  </div>
+</mat-toolbar>

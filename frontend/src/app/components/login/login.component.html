@@ -1,0 +1,100 @@
+<div class="login-page">
+  <!-- Animated Background -->
+  <div class="bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+  </div>
+
+  <div class="login-wrapper">
+    <!-- Left Side - Branding -->
+    <div class="branding-section">
+      <div class="brand-content">
+        <div class="logo-icon">
+          <mat-icon>travel_explore</mat-icon>
+        </div>
+        <h1>Travel Planner</h1>
+        <p class="tagline">Your journey begins here</p>
+        <div class="features">
+          <div class="feature">
+            <mat-icon>flight_takeoff</mat-icon>
+            <span>Plan Amazing Trips</span>
+          </div>
+          <div class="feature">
+            <mat-icon>savings</mat-icon>
+            <span>Track Your Budget</span>
+          </div>
+          <div class="feature">
+            <mat-icon>wb_sunny</mat-icon>
+            <span>Live Weather Updates</span>
+          </div>
+          <div class="feature">
+            <mat-icon>explore</mat-icon>
+            <span>Discover New Places</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side - Login Form -->
+    <div class="form-section">
+      <div class="login-card">
+        <div class="card-header">
+          <h2>Welcome Back!</h2>
+          <p>Sign in to continue your adventure</p>
+        </div>
+        
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <div class="input-group">
+            <mat-icon class="input-icon">email</mat-icon>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email Address</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="Enter your email">
+              <mat-error *ngIf="email?.hasError('required')">Email is required</mat-error>
+              <mat-error *ngIf="email?.hasError('email')">Invalid email format</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="input-group">
+            <mat-icon class="input-icon">lock</mat-icon>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input matInput type="password" formControlName="password" placeholder="Enter your password">
+              <mat-error *ngIf="password?.hasError('required')">Password is required</mat-error>
+              <mat-error *ngIf="password?.hasError('minlength')">Password must be at least 6 characters</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div *ngIf="errorMessage" class="error-message">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMessage }}</span>
+          </div>
+
+          <button mat-raised-button type="submit" [disabled]="loading || loginForm.invalid" class="login-btn">
+            <span *ngIf="!loading" class="btn-content">
+              <mat-icon>login</mat-icon>
+              Sign In
+            </span>
+            <span *ngIf="loading" class="btn-content">
+              <mat-spinner diameter="20"></mat-spinner>
+              Signing in...
+            </span>
+          </button>
+
+          <div class="divider">
+            <span>or</span>
+          </div>
+
+          <div class="register-link">
+            <p>Don't have an account?</p>
+            <a routerLink="/register" class="register-btn">
+              <mat-icon>person_add</mat-icon>
+              Create Account
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
