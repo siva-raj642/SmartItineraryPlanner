@@ -12,6 +12,7 @@ export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   loading = false;
   errorMessage = '';
+  successMessage = '';
   returnUrl = '';
 
   constructor(
@@ -28,6 +29,12 @@ export class LoginComponent implements OnInit {
     });
 
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/itineraries';
+    
+    // Check if user was redirected due to session expiry
+    const reason = this.route.snapshot.queryParams['reason'];
+    if (reason === 'session_expired') {
+      this.errorMessage = 'Your session has expired. Please log in again.';
+    }
   }
 
   onSubmit(): void {
@@ -37,15 +44,25 @@ export class LoginComponent implements OnInit {
 
     this.loading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         this.loading = false;
-        this.router.navigate([this.returnUrl]);
+        this.successMessage = 'Login successful! Redirecting...';
+        setTimeout(() => {
+          this.router.navigate([this.returnUrl]);
+        }, 500);
       },
       error: (error) => {
         this.loading = false;
-        this.errorMessage = error.error?.error || 'Login failed. Please try again.';
+        if (error.status === 0) {
+          this.errorMessage = 'Network error. Please check your connection.';
+        } else if (error.status === 401) {
+          this.errorMessage = 'Invalid email or password.';
+        } else {
+          this.errorMessage = error.error?.error || 'Login failed. Please try again.';
+        }
       }
     });
   }

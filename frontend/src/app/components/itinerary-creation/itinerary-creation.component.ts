@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import {
   FormBuilder,
   FormGroup,
@@ -10,7 +10,7 @@ import { Router } from "@angular/router";
 import { ItineraryService } from "../../services/itinerary.service";
 import { PageTitleService } from "../../services/page-title.service";
 import { CityService } from "../../services/city.service";
-import { Observable, of } from "rxjs";
+import { Observable, of, Subscription } from "rxjs";
 import {
   map,
   startWith,
@@ -25,7 +25,7 @@ import { DestinationMapComponent } from "../../shared/components/destination-map
   templateUrl: "./itinerary-creation.component.html",
   styleUrls: ["./itinerary-creation.component.scss"],
 })
-export class ItineraryCreationComponent implements OnInit {
+export class ItineraryCreationComponent implements OnInit, OnDestroy {
   @ViewChild("destinationMap") destinationMap!: DestinationMapComponent;
 
   itineraryForm!: FormGroup;
@@ -110,6 +110,12 @@ export class ItineraryCreationComponent implements OnInit {
     this.activities.removeAt(index);
   }
 
+  private apiCompleted = false;
+  private apiError = false;
+  private apiResponse: any = null;
+  private iconTimeouts: any[] = [];
+  private animationTimeout: any = null;
+
   onSubmit(): void {
     if (this.itineraryForm.invalid) return;
 
@@ -121,10 +127,15 @@ export class ItineraryCreationComponent implements OnInit {
       return;
     }
 
+    // Reset state
     this.loading = true;
     this.loadingPhase = 1;
     this.currentIconIndex = 0;
     this.errorMessage = "";
+    this.apiCompleted = false;
+    this.apiError = false;
+    this.apiResponse = null;
+    this.clearAnimationTimeouts();
 
     const formData = {
       ...this.itineraryForm.value,
@@ -132,57 +143,101 @@ export class ItineraryCreationComponent implements OnInit {
       end_date: endDate.toISOString().split("T")[0],
     };
 
-    const ICON_DURATION = 1500;
+    const ICON_DURATION = 1200; // Slightly faster icons
     const TOTAL_ICON_TIME = ICON_DURATION * this.barrelIcons.length;
-    const MIN_RUNNER_TIME = 900; // ⭐ ensures runner is visible
+    const MIN_RUNNER_TIME = 800;
 
-    let apiResponse: any = null;
-
-    // 🔁 ICON SEQUENCE (UNCHANGED)
+    // 🔁 ICON SEQUENCE
     this.barrelIcons.forEach((_, index) => {
-      setTimeout(() => {
-        this.currentIconIndex = index;
+      const timeout = setTimeout(() => {
+        if (this.loading && !this.apiError) {
+          this.currentIconIndex = index;
+        }
       }, ICON_DURATION * index);
+      this.iconTimeouts.push(timeout);
     });
 
     // 🚀 API CALL (parallel)
     this.itineraryService.createItinerary(formData).subscribe({
       next: (response) => {
-        apiResponse = response;
+        this.apiResponse = response;
+        this.apiCompleted = true;
+        // If animations are done, navigate immediately
+        this.checkAndNavigate();
       },
       error: (error) => {
+        this.apiError = true;
+        this.clearAnimationTimeouts();
+        this.stopRunnerAnimation();
         this.loading = false;
-        this.errorMessage = error.error?.error || "Failed to create itinerary";
+        this.loadingPhase = 1;
+        
+        // Better error messages
+        if (error.status === 408 || error.name === 'TimeoutError') {
+          this.errorMessage = "Request timed out. The server might be busy. Please try again.";
+        } else if (error.status === 0) {
+          this.errorMessage = "Network error. Please check your internet connection.";
+        } else if (error.status === 401) {
+          this.errorMessage = "Session expired. Please log in again.";
+        } else {
+          this.errorMessage = error.error?.error || "Failed to create itinerary. Please try again.";
+        }
       },
     });
 
     // 🎬 AFTER ICONS → RUNNER
-    setTimeout(() => {
+    this.animationTimeout = setTimeout(() => {
+      if (this.apiError) return;
+      
       this.loadingPhase = 0 as any;
 
       setTimeout(() => {
+        if (this.apiError) return;
+        
         this.loadingPhase = 2;
         this.startRunnerAnimation();
 
-        // ⏱ GUARANTEED RUNNER VISIBILITY
+        // Check if API already completed
         setTimeout(() => {
-          if (!apiResponse) return;
-
-          this.loading = false;
-          const destination = this.itineraryForm.value.destination;
-          if (destination) {
-            this.pageTitle.setDestination(destination);
-          }
-          const createdId = apiResponse?.itinerary?.id;
-
-          if (createdId) {
-            this.router.navigate(["/itineraries", createdId]);
-          } else {
-            this.router.navigate(["/itineraries"]);
-          }
+          this.checkAndNavigate();
         }, MIN_RUNNER_TIME);
       }, 50);
     }, TOTAL_ICON_TIME);
+  }
+
+  private clearAnimationTimeouts(): void {
+    this.iconTimeouts.forEach(t => clearTimeout(t));
+    this.iconTimeouts = [];
+    if (this.animationTimeout) {
+      clearTimeout(this.animationTimeout);
+      this.animationTimeout = null;
+    }
+  }
+
+  private checkAndNavigate(): void {
+    // Only navigate if API completed successfully and we're in runner phase (or past icon phase)
+    if (!this.apiCompleted || this.apiError || !this.apiResponse) return;
+    if (this.loadingPhase !== 2 && this.loading) return; // Still in icon animation
+    
+    this.loading = false;
+    this.stopRunnerAnimation();
+    
+    const destination = this.itineraryForm.value.destination;
+    if (destination) {
+      this.pageTitle.setDestination(destination);
+    }
+    
+    const createdId = this.apiResponse?.itinerary?.id;
+    if (createdId) {
+      this.router.navigate(["/itineraries", createdId]);
+    } else {
+      this.router.navigate(["/itineraries"]);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearAnimationTimeouts();
+    this.stopRunnerAnimation();
   }
 
   cancel(): void {
