@@ -822,6 +822,33 @@
   }
 }
 
+// Success Message
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(76, 175, 80, 0.15),
+    rgba(76, 175, 80, 0.05)
+  );
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border-left: 4px solid #4caf50;
+
+  mat-icon {
+    color: #81c784;
+    font-size: 20px;
+  }
+
+  span {
+    color: #81c784;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+}
+
 // Login Button
 .login-btn {
   width: 100%;

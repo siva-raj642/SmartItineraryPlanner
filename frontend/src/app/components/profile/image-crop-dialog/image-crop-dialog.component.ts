@@ -37,6 +37,7 @@ export interface ImageCropDialogData {
             [roundCropper]="true"
             [resizeToWidth]="300"
             format="png"
+            output="blob"
             (imageCropped)="imageCropped($event)"
             (imageLoaded)="imageLoaded()"
             (cropperReady)="cropperReady()"
@@ -57,7 +58,7 @@ export interface ImageCropDialogData {
           <mat-icon>close</mat-icon>
           Cancel
         </button>
-        <button mat-raised-button color="primary" (click)="onConfirm()" [disabled]="!croppedImage">
+        <button mat-raised-button color="primary" (click)="onConfirm()" [disabled]="!croppedBlob && !croppedImage">
           <mat-icon>check</mat-icon>
           Apply
         </button>
@@ -134,6 +135,7 @@ export interface ImageCropDialogData {
 })
 export class ImageCropDialogComponent {
   croppedImage: string = '';
+  croppedBlob: Blob | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<ImageCropDialogComponent>,
@@ -141,7 +143,15 @@ export class ImageCropDialogComponent {
   ) {}
 
   imageCropped(event: ImageCroppedEvent) {
-    this.croppedImage = event.base64 || '';
+    // Handle blob output (ngx-image-cropper v7+)
+    if (event.blob) {
+      this.croppedBlob = event.blob;
+      // Create preview URL from blob
+      this.croppedImage = URL.createObjectURL(event.blob);
+    } else if (event.base64) {
+      // Fallback for base64 output
+      this.croppedImage = event.base64;
+    }
   }
 
   imageLoaded() {
@@ -161,8 +171,12 @@ export class ImageCropDialogComponent {
   }
 
   onConfirm(): void {
-    if (this.croppedImage) {
-      // Convert base64 to blob then to file
+    if (this.croppedBlob) {
+      // Use blob directly (ngx-image-cropper v7+)
+      const file = new File([this.croppedBlob], 'profile-picture.png', { type: 'image/png' });
+      this.dialogRef.close({ file, preview: this.croppedImage });
+    } else if (this.croppedImage && this.croppedImage.startsWith('data:')) {
+      // Fallback: Convert base64 to blob then to file
       const byteString = atob(this.croppedImage.split(',')[1]);
       const mimeString = this.croppedImage.split(',')[0].split(':')[1].split(';')[0];
       const ab = new ArrayBuffer(byteString.length);

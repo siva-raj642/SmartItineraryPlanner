@@ -119,7 +119,7 @@ export class ContactFormDialogComponent {
   ) {}
 
   isValid(): boolean {
-    return this.subject.trim().length >= 5 && this.content.trim().length >= 20;
+    return this.subject.trim().length >= 1 && this.content.trim().length >= 1;
   }
 
   send(): void {

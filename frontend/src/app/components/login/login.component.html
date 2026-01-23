@@ -140,6 +140,11 @@
             <span>{{ errorMessage }}</span>
           </div>
 
+          <div *ngIf="successMessage" class="success-message">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ successMessage }}</span>
+          </div>
+
           <button
             mat-raised-button
             type="submit"

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { Observable, BehaviorSubject, shareReplay, tap } from 'rxjs';
 import { Itinerary, ItineraryInput } from '../models/itinerary.model';
 import { environment } from '../../environments/environment';
 
@@ -9,11 +9,21 @@ import { environment } from '../../environments/environment';
 })
 export class ItineraryService {
   private apiUrl = `${environment.apiUrl}/itineraries`;
+  
+  // Cache for itineraries list
+  private itinerariesCache$ = new BehaviorSubject<Itinerary[] | null>(null);
+  private lastFetchTime = 0;
+  private cacheDuration = 30000; // 30 seconds cache
 
   constructor(private http: HttpClient) {}
 
   createItinerary(data: ItineraryInput): Observable<{ message: string; itinerary: Itinerary }> {
-    return this.http.post<{ message: string; itinerary: Itinerary }>(this.apiUrl, data);
+    return this.http.post<{ message: string; itinerary: Itinerary }>(this.apiUrl, data).pipe(
+      tap(() => {
+        // Invalidate cache when new itinerary is created
+        this.invalidateCache();
+      })
+    );
   }
 
   getAllItineraries(filters?: {
@@ -22,7 +32,7 @@ export class ItineraryService {
     endDate?: string;
     minBudget?: number;
     maxBudget?: number;
-  }): Observable<{ itineraries: Itinerary[] }> {
+  }, forceRefresh = false): Observable<{ itineraries: Itinerary[] }> {
     let params = new HttpParams();
     
     if (filters) {
@@ -41,11 +51,15 @@ export class ItineraryService {
   }
 
   updateItinerary(id: number, data: ItineraryInput): Observable<{ message: string }> {
-    return this.http.put<{ message: string }>(`${this.apiUrl}/${id}`, data);
+    return this.http.put<{ message: string }>(`${this.apiUrl}/${id}`, data).pipe(
+      tap(() => this.invalidateCache())
+    );
   }
 
   deleteItinerary(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`).pipe(
+      tap(() => this.invalidateCache())
+    );
   }
 
   // Regenerate activities for an itinerary using real API data
@@ -60,5 +74,11 @@ export class ItineraryService {
 
   getAnalytics(): Observable<{ analytics: any }> {
     return this.http.get<{ analytics: any }>(`${this.apiUrl}/admin/analytics`);
+  }
+
+  // Cache management
+  private invalidateCache(): void {
+    this.itinerariesCache$.next(null);
+    this.lastFetchTime = 0;
   }
 }
